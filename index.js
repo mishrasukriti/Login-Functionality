@@ -42,14 +42,11 @@ app.put("/reset-password", async (req,res)=>{
       let db = client.db("emailId_db");
       let result = await db.collection("users").findOne({ email: req.body.email });
       let salt = await bcrypt.genSalt(10);
-      console.log("Inside reset-password api");
       
       if(result){
-        console.log("Value of _id if result found is: "+ result._id);
         let randomString = {'randomString': salt};
         console.log("randome string is:" + JSON.stringify(randomString) + " and salt is: " + salt);
         await db.collection("users").findOneAndUpdate({email: req.body.email},{$set: randomString});
-        console.log("Email to reset password entered by user is: " +req.body.email);
         mailOptions.to = req.body.email;
         let resetUrl = process.env.resetUrl;
         resetUrl = resetUrl+"?id="+result._id+"&rs="+ randomString.randomString;
@@ -61,7 +58,6 @@ app.put("/reset-password", async (req,res)=>{
 
         let resetMailToBeSend = sampleMail;
         mailOptions.html = resetMailToBeSend;
-        console.log("mailOption is: "+ mailOptions);
         await transporter.sendMail(mailOptions);
         res.status(200).json({
           message: "Verification mail is sent"
@@ -75,7 +71,6 @@ app.put("/reset-password", async (req,res)=>{
       client.close();
   }
   catch(error){
-    console.log(error);
     res.status(500).json({
       message: "Internal Server Error"
     });
@@ -115,9 +110,8 @@ app.put("/change-password/:id", async(req,res)=>{
     let salt = await bcrypt.genSalt(10);
     let hash = await bcrypt.hash(req.body.password, salt);
     req.body.password = hash;
-    console.log("inside changing password backend");
     await db.collection("users").findOneAndUpdate({_id: objectId(req.params.id)}, {$set: {"password":req.body.password}})
-    console.log("password updated successfully");
+    
     res.status(200).json({
       message: "Password Updated Successfully"
     });
@@ -150,7 +144,6 @@ app.post("/register", async (req, res) => {
     }
     client.close();
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Internal Server Error"
     });
@@ -176,7 +169,6 @@ app.post("/login", async (req, res) => {
     }
     client.close();
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: "Internal Server Error"
     });
